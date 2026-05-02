@@ -14,6 +14,16 @@ export default function AuthCallbackPage() {
       const { data: { session }, error } = await supabase.auth.getSession()
 
       if (session) {
+        // Sincronizar avatar de OAuth si el perfil no tiene uno
+        const meta = session.user.user_metadata
+        const oauthAvatar = meta?.avatar_url ?? meta?.picture ?? null
+        if (oauthAvatar) {
+          await supabase
+            .from("profiles")
+            .update({ avatar_url: oauthAvatar })
+            .eq("id", session.user.id)
+            .is("avatar_url", null)
+        }
         router.push("/")
         router.refresh()
         return
