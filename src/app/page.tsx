@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav"
 import PWAInstallPrompt from "@/components/PWAInstallPrompt"
 import Link from "next/link"
 import Image from "next/image"
+import PlaneappLogo from "@/components/Logo"
 
 export default async function Home() {
   const supabase = await createClient()
@@ -15,21 +16,14 @@ export default async function Home() {
     ? await supabase.from("profiles").select("avatar_url, full_name").eq("id", user.id).single()
     : { data: null }
 
-  // Cargar categorías
   const { data: categories } = await supabase
     .from("categories")
     .select("*")
     .order("id")
 
-  // Cargar planes iniciales (sin geo, el cliente aplicará la geo)
   const { data: plans } = await supabase
     .from("plans")
-    .select(`
-      *,
-      categories(*),
-      profiles(*),
-      plan_attendees(count)
-    `)
+    .select(`*, categories(*), profiles(*), plan_attendees(count)`)
     .eq("is_active", true)
     .gt("plan_date", new Date().toISOString())
     .order("plan_date", { ascending: true })
@@ -42,19 +36,15 @@ export default async function Home() {
   }))
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: "#f9f9ff" }}>
       {/* Header */}
       <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between safe-top flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center">
-            <span className="text-white text-sm font-bold">P</span>
-          </div>
-          <span className="font-bold text-gray-900 text-lg">PlaneApp</span>
-        </div>
+        <PlaneappLogo size={28} showText />
         {!isAuthenticated ? (
           <Link
             href="/auth/login"
-            className="bg-orange-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full"
+            className="text-white text-sm font-bold px-5 py-2 rounded-full"
+            style={{ background: "linear-gradient(135deg, #ff8a72, #ff6b52)" }}
           >
             Entrar
           </Link>
@@ -64,13 +54,14 @@ export default async function Home() {
               <Image
                 src={profile.avatar_url}
                 alt=""
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-full object-cover"
+                width={36}
+                height={36}
+                className="w-9 h-9 rounded-full object-cover ring-2 ring-[#ffdad4]"
               />
             ) : (
-              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                <span className="text-orange-600 text-sm font-bold">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center ring-2 ring-[#ffdad4]"
+                style={{ background: "#ff6b52" }}>
+                <span className="text-white text-sm font-bold">
                   {(profile?.full_name ?? user.email ?? "U")[0].toUpperCase()}
                 </span>
               </div>
@@ -79,7 +70,6 @@ export default async function Home() {
         )}
       </header>
 
-      {/* Feed (ocupa el resto) */}
       <main className="flex-1 overflow-hidden">
         <PlanFeed
           initialPlans={plansWithCount}

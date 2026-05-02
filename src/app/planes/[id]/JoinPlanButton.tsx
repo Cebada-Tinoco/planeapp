@@ -40,15 +40,13 @@ export default function JoinPlanButton({ planId, userId, isAttending, isFull }: 
   if (attending) {
     return (
       <div className="flex gap-3">
-        <div className="flex-1 bg-green-50 border border-green-200 rounded-2xl py-3.5 flex items-center justify-center gap-2 text-green-700 font-semibold text-sm">
+        <div className="flex-1 rounded-2xl py-3.5 flex items-center justify-center gap-2 font-bold text-sm"
+          style={{ background: "#e8faf8", color: "#006b5f" }}>
           <UserCheck className="w-5 h-5" />
           ¡Apuntado!
         </div>
-        <button
-          onClick={handleToggle}
-          disabled={loading}
-          className="px-4 py-3.5 bg-gray-100 rounded-2xl text-gray-500 flex items-center gap-1.5 text-sm font-medium"
-        >
+        <button onClick={handleToggle} disabled={loading}
+          className="px-4 py-3.5 bg-gray-100 rounded-2xl text-gray-500 flex items-center gap-1.5 text-sm font-semibold">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
           Salir
         </button>
@@ -57,17 +55,11 @@ export default function JoinPlanButton({ planId, userId, isAttending, isFull }: 
   }
 
   return (
-    <button
-      onClick={handleToggle}
-      disabled={loading || isFull}
-      className="w-full bg-orange-500 disabled:bg-gray-300 text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-    >
-      {loading ? (
-        <Loader2 className="w-5 h-5 animate-spin" />
-      ) : (
-        <UserPlus className="w-5 h-5" />
-      )}
-      {isFull ? "Plan completo" : "Apuntarme al plan"}
+    <button onClick={handleToggle} disabled={loading || isFull}
+      className="w-full text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
+      style={{ background: isFull ? "#9ca3af" : "linear-gradient(135deg, #ff8a72 0%, #ff6b52 60%, #ae311e 100%)", boxShadow: isFull ? "none" : "0 8px 20px rgba(255,107,82,0.35)" }}>
+      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
+      {isFull ? "Plan completo" : "Unirme al plan"}
     </button>
   )
 }

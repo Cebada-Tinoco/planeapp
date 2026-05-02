@@ -15,11 +15,10 @@ export default function LogoutButton() {
   }
 
   return (
-    <button
-      onClick={handleLogout}
-      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-    >
-      <LogOut className="w-5 h-5" />
+    <button onClick={handleLogout}
+      className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-red-50 hover:text-red-500 transition-colors">
+      <LogOut className="w-4 h-4" />
+      Salir
     </button>
   )
 }

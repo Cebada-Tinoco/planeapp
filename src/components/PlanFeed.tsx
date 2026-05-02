@@ -21,7 +21,6 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
   const supabase = createClient()
 
-  // Solicitar geolocalización al entrar
   useEffect(() => {
     if ("geolocation" in navigator) {
       setGeoStatus("requesting")
@@ -42,14 +41,12 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
     setLoading(true)
     try {
       if (userCoords && geoStatus === "granted") {
-        // Buscar por proximidad usando la función SQL
         const { data } = await supabase.rpc("get_plans_near", {
           lat: userCoords.lat,
           lng: userCoords.lng,
           radius_km: 100,
         })
         if (data) {
-          // Enriquecer con categoría y perfil del organizador
           const planIds = data.map((p: Plan) => p.id)
           const { data: fullPlans } = await supabase
             .from("plans")
@@ -59,7 +56,6 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
             .gt("plan_date", new Date().toISOString())
 
           if (fullPlans) {
-            // Mantener orden por distancia
             const ordered = data.map((p: Plan) => {
               const full = fullPlans.find((fp: Plan) => fp.id === p.id)
               return { ...full, distance_km: p.distance_km, attendees_count: p.attendees_count }
@@ -68,7 +64,6 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
           }
         }
       } else {
-        // Sin geo: orden cronológico
         let query = supabase
           .from("plans")
           .select(`*, categories(*), profiles(*), plan_attendees(count)`)
@@ -80,12 +75,8 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
           const cat = categories.find((c) => c.slug === filters.category)
           if (cat) query = query.eq("category_id", cat.id)
         }
-        if (filters.city) {
-          query = query.ilike("city", `%${filters.city}%`)
-        }
-        if (filters.search) {
-          query = query.ilike("title", `%${filters.search}%`)
-        }
+        if (filters.city) query = query.ilike("city", `%${filters.city}%`)
+        if (filters.search) query = query.ilike("title", `%${filters.search}%`)
 
         const { data } = await query
         if (data) setPlans(data)
@@ -95,9 +86,7 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
     }
   }, [userCoords, geoStatus, filters])
 
-  useEffect(() => {
-    fetchPlans()
-  }, [fetchPlans])
+  useEffect(() => { fetchPlans() }, [fetchPlans])
 
   function applyFilters(data: Plan[], f: Filters): Plan[] {
     let result = data
@@ -110,57 +99,79 @@ export default function PlanFeed({ initialPlans, categories, isAuthenticated }: 
     return result
   }
 
-  const handleFiltersChange = (newFilters: Filters) => {
-    setFilters(newFilters)
-  }
+  const featured = plans[0]
+  const rest = plans.slice(1)
 
   return (
     <div className="flex flex-col min-h-0">
-      {/* Banner geolocalización */}
+      {/* Geo banner */}
       {geoStatus === "requesting" && (
-        <div className="bg-orange-50 text-orange-700 text-xs text-center py-2 flex items-center justify-center gap-1.5">
+        <div className="bg-[#f0f3ff] text-[#ff6b52] text-xs text-center py-2 flex items-center justify-center gap-1.5 font-semibold">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          Obteniendo tu ubicación para mostrarte planes cercanos...
+          Buscando planes cercanos a ti...
         </div>
       )}
       {geoStatus === "granted" && (
-        <div className="bg-green-50 text-green-700 text-xs text-center py-1.5 flex items-center justify-center gap-1.5">
+        <div className="bg-[#e8faf8] text-[#006b5f] text-xs text-center py-1.5 flex items-center justify-center gap-1.5 font-semibold">
           <MapPin className="w-3.5 h-3.5" />
-          Mostrando planes cercanos a ti
+          Planes cercanos a ti
         </div>
       )}
 
-      {/* Filtros */}
-      <FilterBar categories={categories} filters={filters} onChange={handleFiltersChange} />
+      <FilterBar categories={categories} filters={filters} onChange={setFilters} />
 
-      {/* Feed */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-28">
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+          <div className="flex items-center justify-center py-20">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #ff8a72, #ff6b52)" }}>
+              <Loader2 className="w-6 h-6 text-white animate-spin" />
+            </div>
           </div>
         ) : plans.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-8 text-center gap-3">
+          <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-3">
             <span className="text-5xl">🗓️</span>
-            <p className="font-semibold text-gray-700">No hay planes disponibles</p>
+            <p className="font-bold text-[#111c2d] text-lg">No hay planes disponibles</p>
             <p className="text-sm text-gray-400">
               {filters.category || filters.search || filters.city
                 ? "Prueba cambiando los filtros"
                 : "¡Sé el primero en crear un plan!"}
             </p>
-            <button
-              onClick={fetchPlans}
-              className="flex items-center gap-1.5 text-orange-500 text-sm font-medium"
-            >
+            <button onClick={fetchPlans}
+              className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full mt-1"
+              style={{ color: "#ff6b52", background: "#ffdad4" }}>
               <RefreshCw className="w-4 h-4" />
               Actualizar
             </button>
           </div>
         ) : (
-          <div className="p-4 grid grid-cols-1 gap-4">
-            {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} isAuthenticated={isAuthenticated} />
-            ))}
+          <div className="px-4 pt-4 space-y-6">
+            {/* Featured */}
+            {featured && (
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-bold text-[#111c2d] text-base">Destacado</h2>
+                </div>
+                <PlanCard plan={featured} isAuthenticated={isAuthenticated} featured />
+              </section>
+            )}
+
+            {/* Rest */}
+            {rest.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-bold text-[#111c2d] text-base">
+                    {geoStatus === "granted" ? "Cerca de ti" : "Próximos planes"}
+                  </h2>
+                  <span className="text-xs text-gray-400 font-medium">{rest.length} planes</span>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {rest.map((plan) => (
+                    <PlanCard key={plan.id} plan={plan} isAuthenticated={isAuthenticated} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>

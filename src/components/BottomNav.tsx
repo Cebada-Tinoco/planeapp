@@ -27,41 +27,30 @@ export default function BottomNav({ isAuthenticated }: BottomNavProps) {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-gray-100 safe-bottom">
       <div className="flex items-center justify-around px-4 py-2">
         {links.map(({ href, icon: Icon, label, isPrimary }) => {
           const isActive = pathname === href
 
           if (isPrimary) {
             return (
-              <Link
-                key={href}
-                href={href}
-                className="flex flex-col items-center -mt-5"
-              >
-                <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-200">
+              <Link key={href} href={href} className="flex flex-col items-center -mt-6">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-[#ff6b52]/40"
+                  style={{ background: "linear-gradient(135deg, #ff8a72 0%, #ff6b52 60%, #ae311e 100%)" }}>
                   <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="text-xs text-gray-500 mt-1 font-medium">{label}</span>
+                <span className="text-xs text-gray-500 mt-1 font-semibold">{label}</span>
               </Link>
             )
           }
 
           return (
-            <Link
-              key={href}
-              href={href}
-              className="flex flex-col items-center gap-1 px-4 py-1"
-            >
+            <Link key={href} href={href} className="flex flex-col items-center gap-1 px-4 py-1">
               <Icon
-                className={`w-6 h-6 ${isActive ? "text-orange-500" : "text-gray-400"}`}
+                className={`w-6 h-6 ${isActive ? "text-[#ff6b52]" : "text-gray-400"}`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
-              <span
-                className={`text-xs font-medium ${
-                  isActive ? "text-orange-500" : "text-gray-400"
-                }`}
-              >
+              <span className={`text-xs font-semibold ${isActive ? "text-[#ff6b52]" : "text-gray-400"}`}>
                 {label}
               </span>
             </Link>
