@@ -11,6 +11,10 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser()
   const isAuthenticated = !!user
 
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("avatar_url, full_name").eq("id", user.id).single()
+    : { data: null }
+
   // Cargar categorías
   const { data: categories } = await supabase
     .from("categories")
@@ -56,11 +60,21 @@ export default async function Home() {
           </Link>
         ) : (
           <Link href="/perfil">
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-              <span className="text-orange-600 text-sm font-bold">
-                {user.email?.[0].toUpperCase()}
-              </span>
-            </div>
+            {profile?.avatar_url ? (
+              <Image
+                src={profile.avatar_url}
+                alt=""
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <span className="text-orange-600 text-sm font-bold">
+                  {(profile?.full_name ?? user.email ?? "U")[0].toUpperCase()}
+                </span>
+              </div>
+            )}
           </Link>
         )}
       </header>
